@@ -1,6 +1,10 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.HID;
 #endif
 
 namespace StarterAssets
@@ -281,40 +285,77 @@ namespace StarterAssets
                 Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
                 if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, itemLayer))
                 {
-					Debug.Log(hit.collider.gameObject.name);
 					if (itemRb == null)
 					{
-						itemRb = hit.rigidbody;
-						itemCollider = hit.collider;
-
-						if(hit.rigidbody != null)
-						{
-                            itemRb.isKinematic = true;
-                        }
-                        itemCollider.enabled = false;
-                        itemCollider.gameObject.transform.parent = _mainCamera.transform;
-                        itemCollider.gameObject.layer = 6;
-
-                        foreach (Transform child in itemCollider.transform)
-                        {
-                            child.gameObject.layer = 6;
-                        }
-
-                        itemRb.transform.localPosition = itemHolder.transform.localPosition;
-                        itemRb.transform.localRotation = itemHolder.transform.localRotation;
+						HoldItem(hit);
                     }
 
-					else
+					else if(itemRb != null)
 					{
-						itemRb.position = itemHolder.position;
-						itemRb.rotation = itemHolder.rotation;
-					}
-				}
+                        DropItem();
+                    }
 
+                    Debug.Log(hit.collider.gameObject.name);
+				}
+                else
+                {
+					if(itemRb != null)
+					{
+						DropItem();
+                    }	
+                }
                 _input.Pickup = false;
             }
 
         }
-    
-	}
+        public void HoldItem(RaycastHit hit)
+		{
+            itemRb = hit.rigidbody;
+            itemCollider = hit.collider;
+
+            if (hit.rigidbody != null)
+            {
+                itemRb.isKinematic = true;
+            }
+            itemCollider.enabled = false;
+            itemCollider.gameObject.transform.parent = _mainCamera.transform;
+            itemCollider.gameObject.layer = 7;
+
+            foreach (Transform child in itemCollider.transform)
+            {
+                child.gameObject.layer = 7;
+            }
+
+            //itemRb.transform.localPosition = itemHolder.transform.localPosition;
+            itemRb.transform.localRotation = itemHolder.transform.localRotation;
+			Vector3 startPos = itemRb.transform.localPosition;
+			Vector3 endPos = itemHolder.localPosition;
+            StartCoroutine(MoveTowardsSmooth(startPos, endPos));
+        }
+        IEnumerator MoveTowardsSmooth(Vector3 startPos, Vector3 targetPos)
+        {
+            float speed = 15.0f; // Adjust for desired speed
+
+            while (Vector3.Distance(itemRb.transform.localPosition, targetPos) > 0.01f)
+            {
+                itemRb.transform.localPosition = Vector3.MoveTowards(itemRb.transform.localPosition, targetPos, speed * Time.deltaTime);
+                yield return null;
+            }
+
+            // Ensure final position is reached
+            itemRb.transform.localPosition = targetPos;
+        }
+
+        public void DropItem()
+		{
+            itemCollider.gameObject.layer = 6;
+            itemRb.isKinematic = false;
+            itemCollider.enabled = true;
+            itemCollider.gameObject.transform.parent = null;
+            itemCollider = null;
+            itemRb = null;
+
+        }
+
+    }
 }
