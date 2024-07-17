@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace StarterAssets
 {
-	public class StarterAssetsInputs : MonoBehaviour
+	public class PlayerController : MonoBehaviour
 	{
 		[Header("Character Input Values")]
 		public Vector2 move;
@@ -43,6 +43,11 @@ namespace StarterAssets
 		public void OnSprint(InputValue value)
 		{
 			SprintInput(value.isPressed);
+		}
+
+		public void OnPickup(InputValue value)
+		{
+			PickupInput(value.isPressed);
 		}
 #endif
 

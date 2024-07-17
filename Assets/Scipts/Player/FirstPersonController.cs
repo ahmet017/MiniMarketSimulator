@@ -70,7 +70,7 @@ namespace StarterAssets
 		private PlayerInput _playerInput;
 #endif
 		private CharacterController _controller;
-		private StarterAssetsInputs _input;
+		private PlayerController _input;
 		private GameObject _mainCamera;
 
 		private const float _threshold = 0.01f;
@@ -99,7 +99,7 @@ namespace StarterAssets
 		private void Start()
 		{
 			_controller = GetComponent<CharacterController>();
-			_input = GetComponent<StarterAssetsInputs>();
+			_input = GetComponent<PlayerController>();
 #if ENABLE_INPUT_SYSTEM
 			_playerInput = GetComponent<PlayerInput>();
 #else
@@ -116,7 +116,9 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
-		}
+			Pickup();
+
+        }
 
 		private void LateUpdate()
 		{
@@ -266,6 +268,53 @@ namespace StarterAssets
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
 		}
 
+		[Header("pickupTools")]
+		[SerializeField] private float pickupRange;
+        [SerializeField] private LayerMask itemLayer;
+        [SerializeField] private Transform itemHolder;
+        private Rigidbody itemRb;
+        private Collider itemCollider;
+        public void Pickup()
+        {
+            if (_input.Pickup)
+            {
+                Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
+                if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, itemLayer))
+                {
+					Debug.Log(hit.collider.gameObject.name);
+					if (itemRb == null)
+					{
+						itemRb = hit.rigidbody;
+						itemCollider = hit.collider;
 
+						if(hit.rigidbody != null)
+						{
+                            itemRb.isKinematic = true;
+                        }
+                        itemCollider.enabled = false;
+                        itemCollider.gameObject.transform.parent = _mainCamera.transform;
+                        itemCollider.gameObject.layer = 6;
+
+                        foreach (Transform child in itemCollider.transform)
+                        {
+                            child.gameObject.layer = 6;
+                        }
+
+                        itemRb.transform.localPosition = itemHolder.transform.localPosition;
+                        itemRb.transform.localRotation = itemHolder.transform.localRotation;
+                    }
+
+					else
+					{
+						itemRb.position = itemHolder.position;
+						itemRb.rotation = itemHolder.rotation;
+					}
+				}
+
+                _input.Pickup = false;
+            }
+
+        }
+    
 	}
 }

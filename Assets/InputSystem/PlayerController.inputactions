@@ -1,5 +1,5 @@
 {
-    "name": "StarterAssets",
+    "name": "PlayerController",
     "maps": [
         {
             "name": "Player",
@@ -231,10 +231,10 @@
                 {
                     "name": "",
                     "id": "7f5e95e2-577f-417a-b96b-03f40401cfc7",
-                    "path": "<Mouse>/leftButton",
+                    "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "KeyboardMouse",
                     "action": "Pickup",
                     "isComposite": false,
                     "isPartOfComposite": false
