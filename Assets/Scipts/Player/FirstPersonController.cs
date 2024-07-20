@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
@@ -394,11 +395,10 @@ namespace StarterAssets
             ObjectPlacement();
             RotateObject();
         }
+        Dictionary<Renderer, Material> originalMaterials = new Dictionary<Renderer, Material>();
         public void ObjectPlacement()
         {
-
             Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
-
             if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, MovableObjLayer))
             {
                 if (MovableObj == null)
@@ -408,14 +408,27 @@ namespace StarterAssets
 
                     if (_input.MoveObj)
                     {
+                        Renderer[] childRenderers = hit.transform.GetComponentsInChildren<Renderer>();
+
                         MovableObj = hit.transform.GetComponentInChildren<Transform>();
                         MovableCollider = hit.collider;
                         MovableCollider.enabled = false;
-                        MovableMaterial = hit.transform.GetComponentInChildren<Renderer>().material;
-                        hit.transform.GetComponentInChildren<Renderer>().material = GhostMaterial;
+                        //MovableMaterial = hit.transform.GetComponentInChildren<Renderer>().material;
+                        //hit.transform.GetComponentInChildren<Renderer>().material = GhostMaterial;
+
+                        foreach (Renderer renderer in childRenderers)
+                        {
+                            // Orijinal materyali kaydet
+                            originalMaterials.Add(renderer, renderer.material);
+
+                            // GhostMaterial ile materyali değiştir
+                            renderer.material = GhostMaterial;
+                        }
 
                     }
-                    
+
+
+
                 }
 
                 else
@@ -459,12 +472,17 @@ namespace StarterAssets
 
             if (_input.Click && MovableObj != null)
             {
-                MovableCollider.enabled = true;
-                if (MovableObj.GetComponent<Renderer>().material != null)
-                {
-                    MovableObj.GetComponent<Renderer>().material = MovableMaterial;
+                //if (MovableObj.GetComponent<Renderer>().material != null)
+                //{
+                //    MovableObj.GetComponent<Renderer>().material = MovableMaterial;
 
+                //}
+                foreach (KeyValuePair<Renderer, Material> pair in originalMaterials)
+                {
+                    pair.Key.material = pair.Value;
                 }
+                MovableCollider.enabled = true;
+                originalMaterials.Clear();
                 MovableObj = null;
                 Debug.Log("tiklamdi");
             }
@@ -475,12 +493,12 @@ namespace StarterAssets
             {
                 if (Input.GetKey(KeyCode.E))
                 {
-                    MovableObj.Rotate(Vector3.forward * RotationSpeed );
+                    MovableObj.Rotate(Vector3.up * ObjRotationSpeed * Time.deltaTime);
 
                 }
                 else if (Input.GetKey(KeyCode.Q))
                 {
-                    MovableObj.Rotate(Vector3.forward * -RotationSpeed );
+                    MovableObj.Rotate(Vector3.up * -ObjRotationSpeed * Time.deltaTime);
 
                 }
 
