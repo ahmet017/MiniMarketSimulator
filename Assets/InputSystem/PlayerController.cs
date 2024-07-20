@@ -13,8 +13,10 @@ namespace StarterAssets
 		public bool jump;
 		public bool sprint;
 		public bool Pickup;
+		public bool MoveObj;
+		public bool Click;
 
-		[Header("Movement Settings")]
+        [Header("Movement Settings")]
 		public bool analogMovement;
 
 		[Header("Mouse Cursor Settings")]
@@ -49,10 +51,18 @@ namespace StarterAssets
 		{
 			PickupInput(value.isPressed);
 		}
+
+        public void OnMoveObj(InputValue value)
+        {
+            MoveObjInput(value.isPressed);
+        }
+        public void OnClick(InputValue value)
+        {
+				ClickInput(value.isPressed);
+        }
 #endif
 
-
-		public void MoveInput(Vector2 newMoveDirection)
+        public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
 		} 
@@ -76,10 +86,22 @@ namespace StarterAssets
 		{
 			Pickup = newPickupState;
 		}
+        public void MoveObjInput(bool newMoveObjState)
+        {
+            MoveObj = newMoveObjState;
+        }
+        public void ClickInput(bool newClickState)
+        {
+            Click = newClickState;
+        }
 
         public void VirtualPickupInput(bool virtualPickupState)
         {
             PickupInput(virtualPickupState);
+        }
+        public void VirtualClickInput(bool virtualClickState)
+        {
+            ClickInput(virtualClickState);
         }
 
         private void OnApplicationFocus(bool hasFocus)
