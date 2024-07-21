@@ -345,7 +345,6 @@ namespace StarterAssets
                 child.gameObject.layer = 7;
             }
 
-            //itemRb.transform.localPosition = itemHolder.transform.localPosition;
             itemRb.transform.localRotation = itemHolder.transform.localRotation;
             Vector3 startPos = itemRb.transform.localPosition;
             Vector3 endPos = itemHolder.localPosition;
@@ -409,20 +408,16 @@ namespace StarterAssets
                     if (_input.MoveObj)
                     {
                         Renderer[] childRenderers = hit.transform.GetComponentsInChildren<Renderer>();
-
-                        MovableObj = hit.transform.GetComponentInChildren<Transform>();
-                        MovableCollider = hit.collider;
-                        MovableCollider.enabled = false;
-                        //MovableMaterial = hit.transform.GetComponentInChildren<Renderer>().material;
-                        //hit.transform.GetComponentInChildren<Renderer>().material = GhostMaterial;
-
+                        MovableObj = hit.transform.GetComponentInParent<Transform>();
                         foreach (Renderer renderer in childRenderers)
                         {
-                            // Orijinal materyali kaydet
                             originalMaterials.Add(renderer, renderer.material);
-
-                            // GhostMaterial ile materyali değiştir
                             renderer.material = GhostMaterial;
+                        }
+
+                        foreach (Collider childCollider in MovableObj.GetComponentsInChildren<Collider>())
+                        {
+                            childCollider.enabled = false;
                         }
 
                     }
@@ -441,7 +436,6 @@ namespace StarterAssets
 
             else
             {
-                // Ray temas etmiyorsa TakeText objesini devre dışı bırak
                 MoveText.SetActive(false);
                 if(MovableObj != null)
                     RotateAndConfirmText.SetActive(true);
@@ -459,10 +453,6 @@ namespace StarterAssets
                 {
                     if (MovableObj != null)
                     {
-                        //float halfYScale = MovableObj.localScale.y / 2f;
-                        //Vector3 adjustedPosition = hit.point + Vector3.up * halfYScale;
-
-                        //MovableObj.transform.position = adjustedPosition;
                         MovableObj.transform.position = hit.point;
                     }
 
@@ -472,16 +462,14 @@ namespace StarterAssets
 
             if (_input.Click && MovableObj != null)
             {
-                //if (MovableObj.GetComponent<Renderer>().material != null)
-                //{
-                //    MovableObj.GetComponent<Renderer>().material = MovableMaterial;
-
-                //}
                 foreach (KeyValuePair<Renderer, Material> pair in originalMaterials)
                 {
                     pair.Key.material = pair.Value;
                 }
-                MovableCollider.enabled = true;
+                foreach (Collider childCollider in MovableObj.GetComponentsInChildren<Collider>())
+                {
+                    childCollider.enabled = true;
+                }
                 originalMaterials.Clear();
                 MovableObj = null;
                 Debug.Log("tiklamdi");
