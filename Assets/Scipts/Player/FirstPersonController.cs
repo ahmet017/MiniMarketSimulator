@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using JetBrains.Annotations;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace StarterAssets
 #endif
     public class FirstPersonController : MonoBehaviour
     {
+        public static FirstPersonController Instance;
 
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
@@ -85,7 +87,7 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM
                 return _playerInput.currentControlScheme == "KeyboardMouse";
 #else
-				return false;
+				return false;   
 #endif
             }
         }
@@ -96,6 +98,11 @@ namespace StarterAssets
             if (_mainCamera == null)
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+            }
+
+            if(Instance == null)
+            {
+                Instance = this;
             }
         }
 
@@ -275,9 +282,9 @@ namespace StarterAssets
 
         [Header("pickupTools")]
         [SerializeField] private float pickupRange;
-        [SerializeField] private LayerMask itemLayer;
+        [SerializeField] private LayerMask itemLayer,itemlayer2;
         [SerializeField] private Transform itemHolder;
-        private Rigidbody itemRb;
+        public Rigidbody itemRb;
         private Collider itemCollider;
         public void Pickup()
         {
@@ -299,33 +306,75 @@ namespace StarterAssets
                 else
                 {
                     TakeText.SetActive(false);
-                    if (_input.Pickup)
-                    {
-                        DropItem();
-                        _input.Pickup = false;
-
-                    }
                 }
             }
-            else
+
+            if (Physics.Raycast(ray, out hit, pickupRange, itemlayer2))
             {
-                TakeText.SetActive(false);
                 if (itemRb != null)
                 {
                     if (_input.Pickup)
                     {
+                        //itemRb.transform.position = hit.collider.transform.position;
+                        ShelfManager shelfManager = hit.collider.transform.GetComponent<ShelfManager>();
+                        if (shelfManager != null)
+                        {
+                            shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject);
+                        }
+
+                        Debug.Log(hit.collider.gameObject.name);
+                        DropItem(0);
+
                         _input.Pickup = false;
-                        DropItem();
+
                     }
-
+                    TakeText.SetActive(false);
                 }
-                _input.Pickup = false;
 
+                else
+                {
+                    if (_input.Pickup)
+                    {
+                        if (hit.collider.gameObject.transform.childCount > 0)
+                        {
+                            Transform lastChild = hit.collider.gameObject.transform.GetChild(hit.collider.gameObject.transform.childCount - 1);
+                            itemRb = lastChild.GetComponent<Rigidbody>();
+                            itemCollider = lastChild.GetComponent<Collider>();
 
+                            if (itemRb != null)
+                            {
+                                itemRb.isKinematic = true;
+                            }
+                            itemRb.transform.parent = null;
 
+                            itemCollider.enabled = false;
+                            itemCollider.gameObject.transform.parent = _mainCamera.transform;
+                            itemCollider.gameObject.layer = 7;
+
+                            itemRb.transform.localRotation = itemHolder.transform.localRotation;
+                            Vector3 startPos = itemRb.transform.localPosition;
+                            Vector3 endPos = itemHolder.localPosition;
+                            StartCoroutine(MoveTowardsSmooth(startPos, endPos));
+                            TakeText.SetActive(false);
+                        }
+
+                        _input.Pickup = false;
+                    }
+                }
+            }
+            else if (!Physics.Raycast(ray, out hit, pickupRange, itemLayer))
+            {
+                TakeText.SetActive(false);
+                if (_input.Pickup)
+                    _input.Pickup = false;
             }
 
-
+            else
+            {
+                //TakeText.SetActive(false);
+                if (_input.Pickup)
+                    _input.Pickup = false;
+            }
         }
         public void HoldItem(RaycastHit hit)
         {
@@ -364,12 +413,12 @@ namespace StarterAssets
             itemRb.transform.localPosition = targetPos;
         }
 
-        public void DropItem()
+        public void DropItem(LayerMask layer)
         {
-            itemCollider.gameObject.layer = 6;
+            itemCollider.gameObject.layer = layer;
             itemRb.isKinematic = false;
             itemCollider.enabled = true;
-            itemCollider.gameObject.transform.parent = null;
+            //itemCollider.gameObject.transform.parent = null;
             itemCollider = null;
             itemRb = null;
 
