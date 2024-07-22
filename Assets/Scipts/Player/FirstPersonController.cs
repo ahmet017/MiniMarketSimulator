@@ -315,15 +315,14 @@ namespace StarterAssets
                 {
                     if (_input.Pickup)
                     {
-                        //itemRb.transform.position = hit.collider.transform.position;
                         ShelfManager shelfManager = hit.collider.transform.GetComponent<ShelfManager>();
                         if (shelfManager != null)
                         {
-                            shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject);
+                            shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject); 
                         }
 
                         Debug.Log(hit.collider.gameObject.name);
-                        DropItem(0);
+                        //DropItem(0);
 
                         _input.Pickup = false;
 
@@ -346,8 +345,6 @@ namespace StarterAssets
                                 itemRb.isKinematic = true;
                             }
                             itemRb.transform.parent = null;
-
-                            itemCollider.enabled = false;
                             itemCollider.gameObject.transform.parent = _mainCamera.transform;
                             itemCollider.gameObject.layer = 7;
 
@@ -356,6 +353,8 @@ namespace StarterAssets
                             Vector3 endPos = itemHolder.localPosition;
                             StartCoroutine(MoveTowardsSmooth(startPos, endPos));
                             TakeText.SetActive(false);
+
+                            Debug.Log(hit.collider.gameObject.transform.childCount);
                         }
 
                         _input.Pickup = false;
@@ -385,7 +384,7 @@ namespace StarterAssets
             {
                 itemRb.isKinematic = true;
             }
-            itemCollider.enabled = false;
+
             itemCollider.gameObject.transform.parent = _mainCamera.transform;
             itemCollider.gameObject.layer = 7;
 
@@ -417,7 +416,6 @@ namespace StarterAssets
         {
             itemCollider.gameObject.layer = layer;
             itemRb.isKinematic = false;
-            itemCollider.enabled = true;
             //itemCollider.gameObject.transform.parent = null;
             itemCollider = null;
             itemRb = null;

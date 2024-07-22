@@ -5,13 +5,10 @@ using UnityEngine;
 
 public class ShelfManager : MonoBehaviour
 {
+
     public Transform shelf; // the shelf game object
-    public float shelfWidth = 1.0f; // the width of the shelf
     public float shelfHeight = 1.0f; // the height of the shelf
-    public float itemSpacing = 0.86f; // the spacing between items on the shelf
-
     private List<GameObject> itemsOnShelf = new List<GameObject>(); // list of items currently on the shelf
-
     private void Awake()
     {
         shelf = this.transform;
@@ -28,32 +25,27 @@ public class ShelfManager : MonoBehaviour
             }
 
         }
-
-        float xPosition = ((itemsOnShelf.Count - 1) * itemSpacing) - (shelfWidth / 2) + itemSpacing;
-        Vector3 position = new Vector3(xPosition, -0.15f, 0);
-        item.layer = 0;
-        if (item.transform.parent != null)
-            item.transform.parent = null;
-        item.transform.parent = shelf;
-        item.transform.localRotation = Quaternion.identity;
-        item.transform.localPosition = new Vector3(xPosition,-0.4f,0);
-        item.transform.localScale =new Vector3(0.2f, 0.5f, 0.5f);
-    }
-
-
-    public void GetItem(Transform selecteditem)
-    {
-        if (transform.childCount > 0)
+        Foods SelectedItem = item.GetComponent<ItemId>().Item;
+        if (itemsOnShelf.Count < SelectedItem.MaxItemCountOnShelf)
         {
-            // Get the last child (bottom-most item)
-            selecteditem = transform.GetChild(transform.childCount - 1);
-            selecteditem.parent = null; // Set parent to null to pick up the item
+            
+            int currentRow = itemsOnShelf.Count / (SelectedItem.MaxItemCountOnShelf/ 2);
+            int itemsInRow = itemsOnShelf.Count % (SelectedItem.MaxItemCountOnShelf / 2);
+            float xPosition = SelectedItem.Shelfwidth / 2 - (itemsInRow * SelectedItem.ItemSpacing / 2) - (itemsInRow * SelectedItem.ItemSpacing / 2);
+            Debug.Log(xPosition + "ve " + ((itemsOnShelf.Count) * SelectedItem.ItemSpacing));
+
+            item.layer = 0;
+            item.transform.parent = shelf;
+            item.transform.localRotation = Quaternion.identity;
+            item.transform.localPosition = new Vector3(xPosition, -0.55f, (currentRow % 2 == 0) ? -0.28f : 0.28f);
+            item.transform.localScale = SelectedItem.scale;
+
+            FirstPersonController.Instance.DropItem(0);
         }
+
         else
         {
-            // Handle the case where there are no items on the shelf (optional)
-            Debug.Log("There are no items on the shelf to pick up.");
+            Debug.Log("raf dolu");          
         }
     }
-
 }

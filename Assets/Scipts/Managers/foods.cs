@@ -7,4 +7,8 @@ public class Foods : ScriptableObject
 {
     public string FoodName;
     public float FoodPrice;
+    public Vector3 scale;
+    public int MaxItemCountOnShelf;
+    public float ItemSpacing;
+    public float Shelfwidth;
 }

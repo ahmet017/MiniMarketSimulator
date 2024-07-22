@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f8ad65600f56cdc48828bd49fbbbbfbf, type: 3}
-  m_Name: Water
+  m_Name: Coffee
   m_EditorClassIdentifier: 
-  FoodName: water
-  FoodPrice: 3
-  scale: {x: 2, y: 5, z: 5}
-  MaxItemCountOnShelf: 18
-  ItemSpacing: 0.1
-  Shelfwidth: 0.8
+  FoodName: coffee
+  FoodPrice: 5
+  scale: {x: 1.5, y: 3.75, z: 3.75}
+  MaxItemCountOnShelf: 12
+  ItemSpacing: 0.15
+  Shelfwidth: 0.75
