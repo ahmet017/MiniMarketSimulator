@@ -40,7 +40,7 @@ public class ShelfManager : MonoBehaviour
             int currentRow = itemsOnShelf.Count / (SelectedItem.MaxItemCountOnShelf/ 2);
             int itemsInRow = itemsOnShelf.Count % (SelectedItem.MaxItemCountOnShelf / 2);
             float xPosition = SelectedItem.Shelfwidth / 2 - (itemsInRow * SelectedItem.ItemSpacing / 2) - (itemsInRow * SelectedItem.ItemSpacing / 2);
-            Debug.Log(xPosition + "ve " + ((itemsOnShelf.Count) * SelectedItem.ItemSpacing));
+            //Debug.Log(xPosition + "ve " + ((itemsOnShelf.Count) * SelectedItem.ItemSpacing));
 
             item.layer = 0;
             item.transform.parent = shelf;

@@ -324,74 +324,119 @@ namespace StarterAssets
 
             else if (Physics.Raycast(ray, out hit, pickupRange, Shelf)) // Raycast for shelf
             {
-                if (itemRb != null && _input.Pickup) // Place on shelf if holding item
+                if (itemRb != null && _input.Click) // Place on shelf if holding item
                 {
                     Transform itemChild = null;
                     ShelfManager shelfManager = hit.collider.GetComponent<ShelfManager>();
-                    if (shelfManager != null && itemRb.tag == "box")
+                    if (itemRb.tag == "box")
                     {
-                        
-                        foreach (Transform child in itemRb.transform)
+                        if(shelfManager != null)
                         {
-                            if (child.tag == "Item")
+                            foreach (Transform child in itemRb.transform)
                             {
-                                itemChild = child;
-                                Debug.Log(itemChild);
-                                break;
+                                
+                                if (child.tag == "Item")
+                                {
+                                    itemChild = child;
+                                }
+
                             }
-;
-                            
+                            if (itemChild != null)
+                            {
+                                shelfManager.PlaceItemOnShelf(itemChild.gameObject);
+                                BoxManager.instance.UrunKaldir();
+                            }
                         }
-                        if (itemChild != null)
-                        {
-                            shelfManager.PlaceItemOnShelf(itemChild.gameObject);
-                        }
-                        //shelfManager.PlaceItemOnShelf(itemChild.transform.gameObject);
                     }
                     else if(shelfManager != null && itemRb.tag != "box")
                     {
                         shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject);
                     }
 
-                    _input.Pickup = false;
+                    _input.Click = false;
                 }
-                else if (_input.Pickup) // Pick up from shelf if no item held
+
+                if (itemRb != null && _input.RightClick) // Place on shelf if holding item
+                {
+                    ShelfManager shelfManager = hit.collider.GetComponent<ShelfManager>();
+                    if (itemRb.tag == "box")
+                    {
+                        Transform lastChild = hit.collider.gameObject.transform.GetChild(hit.collider.gameObject.transform.childCount - 1);
+                        Debug.Log(lastChild);
+                        Debug.Log(itemRb);
+                        Debug.Log(BoxManager.instance.urunYerleri[BoxManager.instance.yerIndex].transform.localPosition);
+                        BoxManager.instance.UrunEkle();
+                        PickUpItemFromShelfToBox(lastChild, itemRb.transform, BoxManager.instance.urunYerleri[BoxManager.instance.yerIndex].transform.localPosition); // Refactored for clarity
+                    }
+                    else if (shelfManager != null && itemRb.tag != "box")
+                    {
+                        shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject);
+                    }
+
+                    _input.RightClick = false;
+                }
+                else if (_input.Click) // Pick up from shelf if no item held
                 {
                     if (hit.collider.gameObject.transform.childCount > 0)
                     {
                         Transform lastChild = hit.collider.gameObject.transform.GetChild(hit.collider.gameObject.transform.childCount - 1);
-                        PickUpItemFromShelf(lastChild); // Refactored for clarity
+                        PickUpItemFromShelf(lastChild, _mainCamera.transform, itemHolder.localPosition); // Refactored for clarity
+                        
                     }
                     
-                    _input.Pickup = false;
+                    _input.Click = false;
                 }
             }
             else // No hit or wrong layer
             {
-                if (_input.Pickup) // Reset pickup state if button pressed
+                if (_input.Pickup)
+                {
+                    itemRb.gameObject.transform.parent = null;
+                    itemRb = null;
+                    itemCollider = null;
                     _input.Pickup = false;
+
+                }// Reset pickup state if button pressed
+                    
 
             }
         }
-
-        private void PickUpItemFromShelf(Transform child)
+        private void PickUpItemFromShelfToBox(Transform child, Transform parent, Vector3 endPos)
         {
-            itemRb = child.GetComponent<Rigidbody>();
-            itemCollider = child.GetComponent<Collider>();
+            //itemRb = child.GetComponent<Rigidbody>();
+            //itemCollider = child.GetComponent<Collider>();
 
+
+            child.transform.parent = null;
+            child.gameObject.transform.parent = parent.transform;
+            child.gameObject.layer = 7;
+
+            child.transform.localRotation = itemHolder.transform.localRotation;
+            child.transform.localPosition = endPos;
+            //Vector3 startPos = itemRb.transform.localPosition;
+            //StartCoroutine(MoveTowardsSmooth(startPos, endPos));
             if (itemRb != null)
             {
                 itemRb.isKinematic = true;
             }
+        }
+        private void PickUpItemFromShelf(Transform child, Transform parent, Vector3 endPos)
+        {
+            //itemRb = child.GetComponent<Rigidbody>();
+            //itemCollider = child.GetComponent<Collider>();
 
-            itemRb.transform.parent = null;
-            itemCollider.gameObject.transform.parent = _mainCamera.transform;
-            itemCollider.gameObject.layer = 7;
 
-            itemRb.transform.localRotation = itemHolder.transform.localRotation;
+            child.transform.parent = null;
+            child.gameObject.transform.parent = parent.transform;
+            child.gameObject.layer = 7;
+
+            child.transform.localRotation = itemHolder.transform.localRotation;
             Vector3 startPos = itemRb.transform.localPosition;
-            Vector3 endPos = itemHolder.localPosition;
             StartCoroutine(MoveTowardsSmooth(startPos, endPos));
+            if (itemRb != null)
+            {
+                itemRb.isKinematic = true;
+            }
         }
         public void HoldItem(RaycastHit hit)
         {

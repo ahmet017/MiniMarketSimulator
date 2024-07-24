@@ -16,7 +16,8 @@ namespace StarterAssets
 		public bool Pickup;
 		public bool MoveObj;
 		public bool Click;
-		public bool Phone;
+		public bool RightClick;
+        public bool Phone;
 		public bool Open;
 
         [Header("Movement Settings")]
@@ -63,6 +64,10 @@ namespace StarterAssets
         {
 			ClickInput(value.isPressed);
         }
+        public void OnRightClick(InputValue value)
+        {
+            RightClickInput(value.isPressed);
+        }
         public void OnOpen(InputValue value)
         {
 			OpenInput(value.isPressed);
@@ -99,6 +104,10 @@ namespace StarterAssets
         public void ClickInput(bool newClickState)
         {
             Click = newClickState;
+        }
+        public void RightClickInput(bool newRightClickState)
+        {
+            RightClick = newRightClickState;
         }
         public void OpenInput(bool newOpenState)
         {
