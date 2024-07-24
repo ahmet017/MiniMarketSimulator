@@ -26,9 +26,6 @@ public class ShelfManager : MonoBehaviour
                 itemsOnShelf.Add(child.gameObject);
                 ActiveFood = child.GetComponent<ItemId>().Item;
             }
-
-
-
         }
 
         // If there are no child objects, set ActiveFood to null
@@ -51,7 +48,10 @@ public class ShelfManager : MonoBehaviour
             item.transform.localPosition = new Vector3(xPosition, -0.58f, (currentRow % 2 == 0) ? -0.28f : 0.28f);
             item.transform.localScale = SelectedItem.scale;
 
-            FirstPersonController.Instance.DropItem(0);
+            if(item.tag != "Item")
+            {
+                FirstPersonController.Instance.DropItem(0);
+            }
         }
 
         else

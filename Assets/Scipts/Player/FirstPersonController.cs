@@ -282,98 +282,116 @@ namespace StarterAssets
 
         [Header("pickupTools")]
         [SerializeField] private float pickupRange;
-        [SerializeField] private LayerMask itemLayer,itemlayer2;
+        [SerializeField] private LayerMask InteractableObj, Shelf, boxlayer, currentitem;
         [SerializeField] private Transform itemHolder;
         public Rigidbody itemRb;
         private Collider itemCollider;
+        bool isOpen;
+        public Animator Animator;
+
         public void Pickup()
         {
+            
+            if(itemRb != null)
+            {
+                Animator.SetBool("IsOpen", isOpen);
+                TakeText.SetActive(false);
+            }
+
             Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, itemLayer))
+            if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, InteractableObj))
             {
+                TakeText.SetActive(itemRb == null);
 
-                if(itemRb == null)
+                if (itemRb == null && _input.Pickup)
                 {
-                    TakeText.SetActive(true);
-                    if (_input.Pickup)
-                    {
-                        HoldItem(hit);
-                        _input.Pickup = false;
-
-                    }
+                    HoldItem(hit);
+                    _input.Pickup = false;
                 }
 
-                else
-                {
-                    TakeText.SetActive(false);
-                }
+                
             }
 
-            if (Physics.Raycast(ray, out hit, pickupRange, itemlayer2))
-            {
-                if (itemRb != null)
-                {
-                    if (_input.Pickup)
-                    {
-                        ShelfManager shelfManager = hit.collider.transform.GetComponent<ShelfManager>();
-                        if (shelfManager != null)
-                        {
-                            shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject); 
-                        }
-
-                        Debug.Log(hit.collider.gameObject.name);
-                        //DropItem(0);
-
-                        _input.Pickup = false;
-
-                    }
-                    TakeText.SetActive(false);
-                }
-
-                else
-                {
-                    if (_input.Pickup)
-                    {
-                        if (hit.collider.gameObject.transform.childCount > 0)
-                        {
-                            Transform lastChild = hit.collider.gameObject.transform.GetChild(hit.collider.gameObject.transform.childCount - 1);
-                            itemRb = lastChild.GetComponent<Rigidbody>();
-                            itemCollider = lastChild.GetComponent<Collider>();
-
-                            if (itemRb != null)
-                            {
-                                itemRb.isKinematic = true;
-                            }
-                            itemRb.transform.parent = null;
-                            itemCollider.gameObject.transform.parent = _mainCamera.transform;
-                            itemCollider.gameObject.layer = 7;
-
-                            itemRb.transform.localRotation = itemHolder.transform.localRotation;
-                            Vector3 startPos = itemRb.transform.localPosition;
-                            Vector3 endPos = itemHolder.localPosition;
-                            StartCoroutine(MoveTowardsSmooth(startPos, endPos));
-                            TakeText.SetActive(false);
-
-                            Debug.Log(hit.collider.gameObject.transform.childCount);
-                        }
-
-                        _input.Pickup = false;
-                    }
-                }
-            }
-            else if (!Physics.Raycast(ray, out hit, pickupRange, itemLayer))
+            if(!Physics.Raycast(ray, out hit, pickupRange, InteractableObj))
             {
                 TakeText.SetActive(false);
-                if (_input.Pickup)
-                    _input.Pickup = false;
+            }
+            if (itemRb != null && _input.Open)
+            {
+                isOpen = !isOpen;
+                _input.Open = false;
             }
 
-            else
+            else if (Physics.Raycast(ray, out hit, pickupRange, Shelf)) // Raycast for shelf
             {
-                //TakeText.SetActive(false);
-                if (_input.Pickup)
+                if (itemRb != null && _input.Pickup) // Place on shelf if holding item
+                {
+                    Transform itemChild = null;
+                    ShelfManager shelfManager = hit.collider.GetComponent<ShelfManager>();
+                    if (shelfManager != null && itemRb.tag == "box")
+                    {
+                        
+                        foreach (Transform child in itemRb.transform)
+                        {
+                            if (child.tag == "Item")
+                            {
+                                itemChild = child;
+                                Debug.Log(itemChild);
+                                break;
+                            }
+;
+                            
+                        }
+                        if (itemChild != null)
+                        {
+                            shelfManager.PlaceItemOnShelf(itemChild.gameObject);
+                        }
+                        //shelfManager.PlaceItemOnShelf(itemChild.transform.gameObject);
+                    }
+                    else if(shelfManager != null && itemRb.tag != "box")
+                    {
+                        shelfManager.PlaceItemOnShelf(itemRb.transform.gameObject);
+                    }
+
                     _input.Pickup = false;
+                }
+                else if (_input.Pickup) // Pick up from shelf if no item held
+                {
+                    if (hit.collider.gameObject.transform.childCount > 0)
+                    {
+                        Transform lastChild = hit.collider.gameObject.transform.GetChild(hit.collider.gameObject.transform.childCount - 1);
+                        PickUpItemFromShelf(lastChild); // Refactored for clarity
+                    }
+                    
+                    _input.Pickup = false;
+                }
             }
+            else // No hit or wrong layer
+            {
+                if (_input.Pickup) // Reset pickup state if button pressed
+                    _input.Pickup = false;
+
+            }
+        }
+
+        private void PickUpItemFromShelf(Transform child)
+        {
+            itemRb = child.GetComponent<Rigidbody>();
+            itemCollider = child.GetComponent<Collider>();
+
+            if (itemRb != null)
+            {
+                itemRb.isKinematic = true;
+            }
+
+            itemRb.transform.parent = null;
+            itemCollider.gameObject.transform.parent = _mainCamera.transform;
+            itemCollider.gameObject.layer = 7;
+
+            itemRb.transform.localRotation = itemHolder.transform.localRotation;
+            Vector3 startPos = itemRb.transform.localPosition;
+            Vector3 endPos = itemHolder.localPosition;
+            StartCoroutine(MoveTowardsSmooth(startPos, endPos));
         }
         public void HoldItem(RaycastHit hit)
         {
@@ -416,7 +434,6 @@ namespace StarterAssets
         {
             itemCollider.gameObject.layer = layer;
             itemRb.isKinematic = false;
-            //itemCollider.gameObject.transform.parent = null;
             itemCollider = null;
             itemRb = null;
 

@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
@@ -15,6 +16,8 @@ namespace StarterAssets
 		public bool Pickup;
 		public bool MoveObj;
 		public bool Click;
+		public bool Phone;
+		public bool Open;
 
         [Header("Movement Settings")]
 		public bool analogMovement;
@@ -58,10 +61,13 @@ namespace StarterAssets
         }
         public void OnClick(InputValue value)
         {
-				ClickInput(value.isPressed);
+			ClickInput(value.isPressed);
         }
+        public void OnOpen(InputValue value)
+        {
+			OpenInput(value.isPressed);
+		}
 #endif
-
         public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
@@ -94,7 +100,10 @@ namespace StarterAssets
         {
             Click = newClickState;
         }
-
+        public void OpenInput(bool newOpenState)
+        {
+            Open = newOpenState;
+        }
         public void VirtualPickupInput(bool virtualPickupState)
         {
             PickupInput(virtualPickupState);
