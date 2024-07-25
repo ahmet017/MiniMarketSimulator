@@ -52,6 +52,8 @@ public class ShelfManager : MonoBehaviour
             {
                 FirstPersonController.Instance.DropItem(0);
             }
+
+            item.gameObject.tag = "Untagged";
         }
 
         else
