@@ -1,5 +1,7 @@
+using StarterAssets;
 using System.Collections;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -11,20 +13,32 @@ public class GameManager : MonoBehaviour
     public bool[] orderPosIsFull;
     public GameObject NPC;
     [SerializeField] private Vector3 InstantiatePos;
+
+    public GameObject MonitorCamera;
+    public GameObject targetCameraPos;
+
+    public GameObject[] Furnitures;
+
     private void Awake()
     {
-        Money = PlayerPrefs.GetFloat("Money");
-        MoneyText = GameObject.Find("MoneyCountText").GetComponent<TextMeshProUGUI>();
-        MoneyText.text = "$ " + Money.ToString();
+        //Money = PlayerPrefs.GetFloat("Money");
+        //MoneyText = GameObject.Find("MoneyCountText").GetComponent<TextMeshProUGUI>();
+        //MoneyText.text = "$ " + Money.ToString();
 
         Cursor.SetCursor(customCursor, Vector2.zero, CursorMode.Auto);
         //NpcSpawner();
-        if(instance == null )
+        if (instance == null)
             instance = this;
     }
     private void Update()
     {
         MouseActivator();
+
+        if (MonitorCamera.activeSelf)
+        {
+            MonitorCamera.transform.position = Vector3.Lerp(MonitorCamera.transform.position, targetCameraPos.transform.position, 0.05f);
+            MonitorCamera.transform.rotation = Quaternion.Slerp(MonitorCamera.transform.localRotation, targetCameraPos.transform.localRotation, 0.05f);
+        }
     }
     public void ChangeMoney()
     {
@@ -54,7 +68,7 @@ public class GameManager : MonoBehaviour
         StartCoroutine(CreateNewNPC());
 
     }
-
+    
     public void OrderPos1()
     {
         orderPosIsFull[0] = false;
@@ -72,18 +86,24 @@ public class GameManager : MonoBehaviour
         // Check if the specified key is pressed
         if (Input.GetKeyDown(KeyCode.P)) // Replace "YourKey" with the desired key
         {
-            PhoneBool = !PhoneBool;
-            Phone.SetActive(PhoneBool);
+            MonitorCamera.SetActive(!MonitorCamera.activeSelf);
+            MonitorCamera.transform.position = FirstPersonController.Instance.CinemachineCameraTarget.transform.position;
 
-            // Toggle mouse active state
+
+            //PhoneBool = !PhoneBool;
+            //Phone.SetActive(PhoneBool);
             mouseActive = !mouseActive;
 
-            // Enable/disable cursor visibility based on mouseActive state
             Cursor.visible = mouseActive;
             Cursor.lockState = CursorLockMode.None;
-            // Enable/disable input for mouse movement and clicks
-            //Input.simulateMousePosition = !mouseActive;
+
         }
 
+    }
+
+
+    public void testButton()
+    {
+        Debug.Log("click");
     }
 }

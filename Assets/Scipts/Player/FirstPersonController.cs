@@ -297,9 +297,12 @@ namespace StarterAssets
             if(itemRb != null)
             {
                 if(itemRb.GetComponent<Animator>() != null)
+                {
                     Animator = itemRb.GetComponent<Animator>();
+                    Animator.SetBool("IsOpen", isOpen);
 
-                Animator.SetBool("IsOpen", isOpen);
+                }    
+
                 TakeText.SetActive(false);
             }
 
@@ -310,8 +313,35 @@ namespace StarterAssets
 
                 if (itemRb == null && _input.Pickup)
                 {
-                    HoldItem(hit);
-                    isOpen = true;
+                    itemRb = hit.rigidbody;
+                    GameObject boxObj = hit.transform.gameObject;
+                    if (itemRb.GetComponent<FurnitureBox>() != null)
+                    {
+                        FurnitureBox furnitureBox = itemRb.GetComponent<FurnitureBox>();
+                        GameObject InstantiateObj = Instantiate(furnitureBox.Furniture);
+                        Destroy(boxObj);
+                        itemRb = null;
+
+                        Renderer[] childRenderers = InstantiateObj.transform.GetComponentsInChildren<Renderer>();
+                        MovableObj = InstantiateObj.transform.GetComponentInParent<Transform>();
+                        foreach (Renderer renderer in childRenderers)
+                        {
+                            originalMaterials.Add(renderer, renderer.material);
+                            renderer.material = GhostMaterial;
+                        }
+
+                        foreach (Collider childCollider in MovableObj.GetComponentsInChildren<Collider>())
+                        {
+                            childCollider.enabled = false;
+                        }
+                    }
+                    else
+                    {
+                        HoldItem(hit);
+                        isOpen = true;
+
+                    }
+
                     _input.Pickup = false;
                 }
 
@@ -500,7 +530,7 @@ namespace StarterAssets
         public void DropItem(LayerMask layer)
         {
             itemCollider.gameObject.layer = layer;
-            itemRb.isKinematic = false;
+            //itemRb.isKinematic = false;
             itemCollider = null;
             itemRb = null;
 
@@ -531,7 +561,7 @@ namespace StarterAssets
             Ray ray = new Ray(_mainCamera.transform.position, _mainCamera.transform.forward);
             if (Physics.Raycast(ray, out RaycastHit hit, pickupRange, MovableObjLayer))
             {
-                if (MovableObj == null)
+                if (MovableObj == null && itemRb == null)
                 {
                     MoveText.SetActive(true);
                     RotateAndConfirmText.SetActive(false);
@@ -583,7 +613,7 @@ namespace StarterAssets
                 if (Physics.Raycast(ray, out hit, Mathf.Infinity))
                 {
                     if (MovableObj != null)
-                    {
+                    {                      
                         MovableObj.transform.position = hit.point;
                     }
 
